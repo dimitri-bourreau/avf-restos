@@ -24,22 +24,26 @@ export function isValidAddress(address: string): boolean {
 
 /**
  * Normalise un statut pour correspondre aux valeurs attendues
+ * Retourne directement les valeurs de la feuille : Terminé, En cours, A démarcher, Refusé
  */
 export function normalizeStatus(status: string | null | undefined): string {
-  if (!status) return "À vérifier";
+  if (!status) return "Refusé";
   
-  const normalized = String(status).trim().toLowerCase();
+  const trimmed = String(status).trim();
   
-  if (normalized.includes("ouvert")) return "Ouvert";
-  if (normalized.includes("fermé") || normalized.includes("ferme")) return "Fermé";
-  if (normalized.includes("vérifier") || normalized.includes("attente")) return "À vérifier";
-  if (normalized.includes("inactif") || normalized.includes("inactive")) return "Inactif";
-  if (normalized.includes("terminé")) return "Ouvert";
-  if (normalized.includes("refusé")) return "Fermé";
-  if (normalized.includes("en cours")) return "À vérifier";
-  if (normalized.includes("démarcher")) return "À vérifier";
+  // Garder les statuts tels quels s'ils correspondent aux valeurs connues
+  if (trimmed === "Terminé" || trimmed === "En cours" || trimmed === "A démarcher" || trimmed === "Refusé") {
+    return trimmed;
+  }
   
-  return status.trim();
+  // Fallback pour d'autres valeurs
+  const normalized = trimmed.toLowerCase();
+  if (normalized.includes("terminé")) return "Terminé";
+  if (normalized.includes("cours")) return "En cours";
+  if (normalized.includes("démarcher") || normalized.includes("demarcher")) return "A démarcher";
+  if (normalized.includes("refusé") || normalized.includes("refuse")) return "Refusé";
+  
+  return trimmed;
 }
 
 /**

@@ -20,13 +20,13 @@ interface MapProps {
 }
 
 /**
- * Crée une icône de marqueur personnalisée
+ * Crée une icône de marqueur personnalisée avec un cercle coloré
  */
 function createMarkerIcon(status: string) {
-  const color = STATUS_COLORS[status] || STATUS_COLORS["Inactif"];
+  const color = STATUS_COLORS[status] || "#6b7280";
   return {
     path: google.maps.SymbolPath.CIRCLE,
-    scale: 12,
+    scale: 10,
     fillColor: color,
     fillOpacity: 1,
     strokeWeight: 2,
@@ -38,13 +38,14 @@ function createMarkerIcon(status: string) {
  * Crée une info window pour un restaurant
  */
 function createInfoWindowContent(resto: RestoWithCoords): string {
+  const bgColor = STATUS_COLORS[resto.statut] || "#6b7280";
   return `
     <div class="p-2">
       <h3 class="font-bold text-lg">${resto.nom}</h3>
       <p class="text-gray-600">${resto.adresse}</p>
       <p class="mt-1">
         <span class="inline-block px-2 py-1 rounded text-xs font-medium" 
-              style="background-color: ${STATUS_COLORS[resto.statut] || STATUS_COLORS["Inactif"]}; color: white;">
+              style="background-color: ${bgColor}; color: white;">
           ${resto.statut}
         </span>
       </p>

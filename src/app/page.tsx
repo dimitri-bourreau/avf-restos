@@ -157,10 +157,10 @@ export default function Home() {
           </h3>
           <div className="flex flex-wrap gap-3">
             {[
-              { label: "Ouvert", color: "bg-green-500" },
-              { label: "Fermé", color: "bg-red-500" },
-              { label: "À vérifier", color: "bg-orange-500" },
-              { label: "Inactif", color: "bg-gray-500" },
+              { label: "Terminé", color: "bg-green-500" },
+              { label: "En cours", color: "bg-orange-500" },
+              { label: "A démarcher", color: "bg-red-500" },
+              { label: "Refusé", color: "bg-gray-500" },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-2">
                 <div
