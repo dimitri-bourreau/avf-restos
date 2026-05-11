@@ -1,0 +1,214 @@
+/**
+ * Composant Carte Google Maps avec marqueurs pour les restaurants
+ * Accessible et responsive
+ */
+
+"use client";
+
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { Wrapper } from "@googlemaps/react-wrapper";
+import type { RestoWithCoords } from "@/types";
+import { STATUS_COLORS, DEFAULT_MAP_CENTER, DEFAULT_ZOOM } from "@/types";
+
+// Clé API Google Maps (côté client - nécessaire pour l'API JavaScript)
+const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+interface MapProps {
+  restos: RestoWithCoords[];
+  onMarkerClick?: (resto: RestoWithCoords) => void;
+  selectedResto?: RestoWithCoords | null;
+}
+
+/**
+ * Crée une icône de marqueur personnalisée
+ */
+function createMarkerIcon(status: string) {
+  const color = STATUS_COLORS[status] || STATUS_COLORS["Inactif"];
+  return {
+    path: google.maps.SymbolPath.CIRCLE,
+    scale: 12,
+    fillColor: color,
+    fillOpacity: 1,
+    strokeWeight: 2,
+    strokeColor: "#ffffff",
+  };
+}
+
+/**
+ * Crée une info window pour un restaurant
+ */
+function createInfoWindowContent(resto: RestoWithCoords): string {
+  return `
+    <div class="p-2">
+      <h3 class="font-bold text-lg">${resto.nom}</h3>
+      <p class="text-gray-600">${resto.adresse}</p>
+      <p class="mt-1">
+        <span class="inline-block px-2 py-1 rounded text-xs font-medium" 
+              style="background-color: ${STATUS_COLORS[resto.statut] || STATUS_COLORS["Inactif"]}; color: white;">
+          ${resto.statut}
+        </span>
+      </p>
+    </div>
+  `;
+}
+
+/**
+ * Composant interne pour afficher la carte une fois l'API chargée
+ */
+function MapInner({
+  restos,
+  onMarkerClick,
+}: {
+  restos: RestoWithCoords[];
+  onMarkerClick?: (resto: RestoWithCoords) => void;
+}) {
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
+  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  // Filtrer les restaurants avec des coordonnées valides
+  const validRestos = useMemo(
+    () => restos.filter((r) => r.lat !== null && r.lng !== null),
+    [restos]
+  );
+
+  // Calculer les bounds pour centrer la carte
+  const bounds = useMemo(() => {
+    if (validRestos.length === 0) return null;
+    
+    const b = new google.maps.LatLngBounds();
+    validRestos.forEach((r) => {
+      if (r.lat && r.lng) {
+        b.extend(new google.maps.LatLng(r.lat, r.lng));
+      }
+    });
+    return b;
+  }, [validRestos]);
+
+  // Centrer la carte
+  const center = useMemo(() => {
+    if (validRestos.length === 0) return DEFAULT_MAP_CENTER;
+    if (bounds) {
+      return bounds.getCenter()?.toJSON() || DEFAULT_MAP_CENTER;
+    }
+    return DEFAULT_MAP_CENTER;
+  }, [validRestos, bounds]);
+
+  // Initialiser la carte
+  useEffect(() => {
+    if (!mapRef.current || !window.google || !window.google.maps) return;
+
+    const mapInstance = new google.maps.Map(mapRef.current, {
+      center,
+      zoom: validRestos.length <= 1 ? DEFAULT_ZOOM : undefined,
+      gestureHandling: "greedy",
+      fullscreenControl: false,
+      mapTypeControl: true,
+      streetViewControl: false,
+      zoomControl: true,
+      styles: [
+        {
+          featureType: "poi",
+          elementType: "labels",
+          stylers: [{ visibility: "on" }],
+        },
+      ],
+    });
+
+    setMap(mapInstance);
+    setInfoWindow(new google.maps.InfoWindow());
+
+    // Créer les marqueurs
+    const newMarkers: google.maps.Marker[] = [];
+    
+    validRestos.forEach((resto) => {
+      if (resto.lat === null || resto.lng === null) return;
+
+      const marker = new google.maps.Marker({
+        position: { lat: resto.lat, lng: resto.lng },
+        map: mapInstance,
+        title: resto.nom,
+        icon: createMarkerIcon(resto.statut),
+      });
+
+      // Ajouter l'event listener pour le clic
+      marker.addListener("click", () => {
+        // Fermer l'info window existante
+        if (infoWindow) {
+          infoWindow.close();
+        }
+
+        // Créer le contenu
+        const content = createInfoWindowContent(resto);
+        
+        // Ouvrir l'info window
+        infoWindow?.setContent(content);
+        infoWindow?.open({
+          anchor: marker,
+          map: mapInstance,
+        });
+
+        // Appeler le callback si fourni
+        onMarkerClick?.(resto);
+      });
+
+      newMarkers.push(marker);
+    });
+
+    setMarkers(newMarkers);
+
+    // Ajuster les bounds si nécessaire
+    if (bounds && validRestos.length > 0) {
+      mapInstance.fitBounds(bounds);
+    }
+
+    return () => {
+      // Nettoyer les marqueurs
+      newMarkers.forEach((marker) => marker.setMap(null));
+    };
+  }, [validRestos, onMarkerClick, center, bounds]);
+
+  return (
+    <div
+      ref={mapRef}
+      className="w-full h-[600px] md:h-[700px]"
+      role="application"
+      aria-label="Carte des restaurants"
+    >
+      {/* Afficher le nombre de restaurants sur la carte */}
+      {validRestos.length > 0 && (
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md z-10">
+          <span className="text-sm font-medium text-gray-700">
+            {validRestos.length} restaurant{validRestos.length > 1 ? "s" : ""} affiché{validRestos.length > 1 ? "s" : ""}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
+  if (!apiKey) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        <p className="font-medium">Erreur : Clé API Google Maps non configurée</p>
+        <p className="text-sm mt-1">
+          Veuillez configurer NEXT_PUBLIC_GOOGLE_MAPS_API_KEY dans .env.local
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg overflow-hidden relative">
+      <Wrapper
+        apiKey={apiKey || ""}
+        libraries={["places"]}
+        version="weekly"
+      >
+        <MapInner restos={restos} onMarkerClick={onMarkerClick} />
+      </Wrapper>
+    </div>
+  );
+}
