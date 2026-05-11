@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Wrapper } from "@googlemaps/react-wrapper";
 import type { RestoWithCoords } from "@/types";
 import { STATUS_COLORS, DEFAULT_MAP_CENTER, DEFAULT_ZOOM } from "@/types";
@@ -105,7 +105,7 @@ function MapInner({
       zoom: validRestos.length <= 1 ? DEFAULT_ZOOM : undefined,
       gestureHandling: "greedy",
       fullscreenControl: false,
-      mapTypeControl: true,
+      mapTypeControl: false,
       streetViewControl: false,
       zoomControl: true,
       styles: [
@@ -173,40 +173,27 @@ function MapInner({
   return (
     <div
       ref={mapRef}
-      className="w-full h-[600px] md:h-[700px]"
+      className="w-full h-full"
       role="application"
       aria-label="Carte des restaurants"
-    >
-      {/* Afficher le nombre de restaurants sur la carte */}
-      {validRestos.length > 0 && (
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md z-10">
-          <span className="text-sm font-medium text-gray-700">
-            {validRestos.length} restaurant{validRestos.length > 1 ? "s" : ""}{" "}
-            affiché{validRestos.length > 1 ? "s" : ""}
-          </span>
-        </div>
-      )}
-    </div>
+    />
   );
 }
 
 export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
   if (!apiKey) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <p className="font-medium">
-          Erreur : Clé API Google Maps non configurée
-        </p>
-        <p className="text-sm mt-1">
-          Veuillez configurer NEXT_PUBLIC_GOOGLE_MAPS_API_KEY dans .env.local
+      <div className="fixed inset-0 bg-red-50 flex items-center justify-center">
+        <p className="text-red-700 font-medium">
+          Clé API Google Maps non configurée
         </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg overflow-hidden relative">
-      <Wrapper apiKey={apiKey || ""} libraries={["places"]} version="weekly">
+    <div className="fixed inset-0">
+      <Wrapper apiKey={apiKey} libraries={["places"]} version="weekly">
         <MapInner restos={restos} onMarkerClick={onMarkerClick} />
       </Wrapper>
     </div>
