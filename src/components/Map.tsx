@@ -64,9 +64,7 @@ function MapInner({
   onMarkerClick?: (resto: RestoWithCoords) => void;
 }) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(
-    null,
-  );
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -120,7 +118,7 @@ function MapInner({
     });
 
     setMap(mapInstance);
-    setInfoWindow(new google.maps.InfoWindow());
+    infoWindowRef.current = new google.maps.InfoWindow();
 
     // Créer les marqueurs
     const newMarkers: google.maps.Marker[] = [];
@@ -138,16 +136,16 @@ function MapInner({
       // Ajouter l'event listener pour le clic
       marker.addListener("click", () => {
         // Fermer l'info window existante
-        if (infoWindow) {
-          infoWindow.close();
+        if (infoWindowRef.current) {
+          infoWindowRef.current.close();
         }
 
         // Créer le contenu
         const content = createInfoWindowContent(resto);
 
         // Ouvrir l'info window
-        infoWindow?.setContent(content);
-        infoWindow?.open({
+        infoWindowRef.current?.setContent(content);
+        infoWindowRef.current?.open({
           anchor: marker,
           map: mapInstance,
         });

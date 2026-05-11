@@ -3,7 +3,7 @@
  * Utilise l'endpoint API côté serveur pour ne pas exposer la clé API
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Resto, RestoWithCoords, GeocodeResponse } from "@/types";
 
 export interface UseGeocodeResult {
@@ -46,8 +46,10 @@ export function useGeocode(initialRestos: Resto[] = []): UseGeocodeResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cache local pour éviter de re-géocoder la même adresse
-  const addressCache = new Map<string, { lat: number; lng: number } | null>();
+  // Cache local pour éviter de re-géocoder la même adresse (stable via useRef)
+  const addressCache = useRef(
+    new Map<string, { lat: number; lng: number } | null>(),
+  );
 
   const geocodeResto = useCallback(async (resto: Resto) => {
     setIsLoading(true);
@@ -55,8 +57,8 @@ export function useGeocode(initialRestos: Resto[] = []): UseGeocodeResult {
 
     try {
       // Vérifier le cache
-      if (addressCache.has(resto.adresse)) {
-        const cached = addressCache.get(resto.adresse);
+      if (addressCache.current.has(resto.adresse)) {
+        const cached = addressCache.current.get(resto.adresse);
         setRestosWithCoords((prev) => {
           const existingIndex = prev.findIndex(
             (r) => r.adresse === resto.adresse,
@@ -86,7 +88,7 @@ export function useGeocode(initialRestos: Resto[] = []): UseGeocodeResult {
 
       // Géocoder via API
       const coords = await geocodeSingleAddress(resto.adresse);
-      addressCache.set(resto.adresse, coords);
+      addressCache.current.set(resto.adresse, coords);
 
       setRestosWithCoords((prev) => {
         const existingIndex = prev.findIndex(
@@ -143,8 +145,8 @@ export function useGeocode(initialRestos: Resto[] = []): UseGeocodeResult {
 
       // Géocoder chaque restaurant
       const promises = restos.map(async (resto) => {
-        if (addressCache.has(resto.adresse)) {
-          const cached = addressCache.get(resto.adresse);
+        if (addressCache.current.has(resto.adresse)) {
+          const cached = addressCache.current.get(resto.adresse);
           return {
             ...resto,
             lat: cached?.lat ?? null,
@@ -154,7 +156,7 @@ export function useGeocode(initialRestos: Resto[] = []): UseGeocodeResult {
         }
 
         const coords = await geocodeSingleAddress(resto.adresse);
-        addressCache.set(resto.adresse, coords);
+        addressCache.current.set(resto.adresse, coords);
 
         return {
           ...resto,

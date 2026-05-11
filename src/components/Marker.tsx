@@ -3,6 +3,7 @@
  * Affiche un marqueur avec une couleur basée sur le statut du restaurant
  */
 
+import Image from "next/image";
 import { STATUS_COLORS } from "@/types";
 import type { RestoStatus } from "@/types";
 
@@ -57,11 +58,13 @@ export function Marker({ status, onClick, isSelected = false }: MarkerProps) {
         }
       }}
     >
-      <img
+      <Image
         src={iconUrl}
         alt=""
-        style={{ width: isSelected ? 40 : 32, height: isSelected ? 40 : 32 }}
+        width={isSelected ? 40 : 32}
+        height={isSelected ? 40 : 32}
         aria-hidden="true"
+        unoptimized
       />
     </div>
   );
