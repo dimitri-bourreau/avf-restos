@@ -8,6 +8,27 @@ import { Resto } from "@/types";
 import { ERROR_MESSAGES } from "@/lib/constants";
 import { normalizeStatus, isValidAddress } from "@/lib/utils";
 
+// Types pour la réponse Google Sheets
+interface GoogleSheetCell {
+  v: string | null;
+  f?: string;
+}
+
+interface GoogleSheetRow {
+  c: GoogleSheetCell[];
+}
+
+interface GoogleSheetData {
+  version: string;
+  reqId: string;
+  status: string;
+  sig: string;
+  table: {
+    cols: { id: string; label: string; type: string }[];
+    rows: GoogleSheetRow[];
+  };
+}
+
 const SHEET_ID = "1XkhOrwzI9VIKxmUmoctAXqd-AyYo5w8-";
 const GID = "1880466191";
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
@@ -15,7 +36,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 /**
  * Parse le JSON de Google Sheets
  */
-function parseSheetJson(text: string): any {
+function parseSheetJson(text: string): GoogleSheetData {
   // Extraire le JSON entre setResponse(...)
   const match = text.match(
     /google\.visualization\.Query\.setResponse\((.+)\);/,
@@ -23,7 +44,7 @@ function parseSheetJson(text: string): any {
   if (!match) {
     throw new Error("Format de réponse invalide");
   }
-  return JSON.parse(match[1]);
+  return JSON.parse(match[1]) as GoogleSheetData;
 }
 
 /**
