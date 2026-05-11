@@ -64,20 +64,22 @@ function MapInner({
   onMarkerClick?: (resto: RestoWithCoords) => void;
 }) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
+  const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(
+    null,
+  );
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Filtrer les restaurants avec des coordonnées valides
   const validRestos = useMemo(
     () => restos.filter((r) => r.lat !== null && r.lng !== null),
-    [restos]
+    [restos],
   );
 
   // Calculer les bounds pour centrer la carte
   const bounds = useMemo(() => {
     if (validRestos.length === 0) return null;
-    
+
     const b = new google.maps.LatLngBounds();
     validRestos.forEach((r) => {
       if (r.lat && r.lng) {
@@ -122,7 +124,7 @@ function MapInner({
 
     // Créer les marqueurs
     const newMarkers: google.maps.Marker[] = [];
-    
+
     validRestos.forEach((resto) => {
       if (resto.lat === null || resto.lng === null) return;
 
@@ -142,7 +144,7 @@ function MapInner({
 
         // Créer le contenu
         const content = createInfoWindowContent(resto);
-        
+
         // Ouvrir l'info window
         infoWindow?.setContent(content);
         infoWindow?.open({
@@ -181,7 +183,8 @@ function MapInner({
       {validRestos.length > 0 && (
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md z-10">
           <span className="text-sm font-medium text-gray-700">
-            {validRestos.length} restaurant{validRestos.length > 1 ? "s" : ""} affiché{validRestos.length > 1 ? "s" : ""}
+            {validRestos.length} restaurant{validRestos.length > 1 ? "s" : ""}{" "}
+            affiché{validRestos.length > 1 ? "s" : ""}
           </span>
         </div>
       )}
@@ -193,7 +196,9 @@ export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
   if (!apiKey) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <p className="font-medium">Erreur : Clé API Google Maps non configurée</p>
+        <p className="font-medium">
+          Erreur : Clé API Google Maps non configurée
+        </p>
         <p className="text-sm mt-1">
           Veuillez configurer NEXT_PUBLIC_GOOGLE_MAPS_API_KEY dans .env.local
         </p>
@@ -203,11 +208,7 @@ export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
 
   return (
     <div className="rounded-lg overflow-hidden relative">
-      <Wrapper
-        apiKey={apiKey || ""}
-        libraries={["places"]}
-        version="weekly"
-      >
+      <Wrapper apiKey={apiKey || ""} libraries={["places"]} version="weekly">
         <MapInner restos={restos} onMarkerClick={onMarkerClick} />
       </Wrapper>
     </div>

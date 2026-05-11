@@ -1,7 +1,7 @@
 /**
  * Endpoint API pour le géocodage d'une adresse
  * GET /api/geocode?address=...
- * 
+ *
  * Sécurité : La clé API Google Geocoding est utilisée côté serveur uniquement
  */
 
@@ -85,7 +85,7 @@ export async function GET(request: Request) {
         success: false,
         error: "Paramètre 'address' manquant",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -97,7 +97,7 @@ export async function GET(request: Request) {
         success: false,
         error: "Adresse vide",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -117,7 +117,12 @@ export async function GET(request: Request) {
         error: ERROR_MESSAGES.GEOCODING_FAILED,
         details: error instanceof Error ? error.message : "Erreur inconnue",
       },
-      { status: error instanceof Error && error.message.includes("non configurée") ? 500 : 404 }
+      {
+        status:
+          error instanceof Error && error.message.includes("non configurée")
+            ? 500
+            : 404,
+      },
     );
   }
 }

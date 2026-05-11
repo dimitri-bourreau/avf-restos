@@ -9,10 +9,7 @@ import { RestoWithCoords } from "@/types";
  * Supprime les espaces multiples et normalise la casse
  */
 export function cleanAddress(address: string): string {
-  return address
-    .trim()
-    .replace(/\s+/g, " ")
-    .replace(/\n/g, " ");
+  return address.trim().replace(/\s+/g, " ").replace(/\n/g, " ");
 }
 
 /**
@@ -28,21 +25,28 @@ export function isValidAddress(address: string): boolean {
  */
 export function normalizeStatus(status: string | null | undefined): string {
   if (!status) return "Refusé";
-  
+
   const trimmed = String(status).trim();
-  
+
   // Garder les statuts tels quels s'ils correspondent aux valeurs connues
-  if (trimmed === "Terminé" || trimmed === "En cours" || trimmed === "A démarcher" || trimmed === "Refusé") {
+  if (
+    trimmed === "Terminé" ||
+    trimmed === "En cours" ||
+    trimmed === "A démarcher" ||
+    trimmed === "Refusé"
+  ) {
     return trimmed;
   }
-  
+
   // Fallback pour d'autres valeurs
   const normalized = trimmed.toLowerCase();
   if (normalized.includes("terminé")) return "Terminé";
   if (normalized.includes("cours")) return "En cours";
-  if (normalized.includes("démarcher") || normalized.includes("demarcher")) return "A démarcher";
-  if (normalized.includes("refusé") || normalized.includes("refuse")) return "Refusé";
-  
+  if (normalized.includes("démarcher") || normalized.includes("demarcher"))
+    return "A démarcher";
+  if (normalized.includes("refusé") || normalized.includes("refuse"))
+    return "Refusé";
+
   return trimmed;
 }
 
@@ -64,7 +68,7 @@ export function filterRestosWithCoords(restos: RestoWithCoords[]): {
  */
 export function createGeocodeCache() {
   const cache = new Map<string, { lat: number; lng: number }>();
-  
+
   return {
     get: (address: string) => cache.get(cleanAddress(address)),
     set: (address: string, coords: { lat: number; lng: number }) => {

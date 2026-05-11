@@ -1,5 +1,10 @@
 // Types pour les restaurants
-export type RestoStatus = "Ouvert" | "Fermé" | "À vérifier" | "Inactif" | string;
+export type RestoStatus =
+  | "Ouvert"
+  | "Fermé"
+  | "À vérifier"
+  | "Inactif"
+  | string;
 
 export interface Resto {
   nom: string;
@@ -33,10 +38,10 @@ export interface GoogleSheetsResponse {
 
 // Mapping des couleurs pour les marqueurs en fonction du statut réel
 export const STATUS_COLORS: Record<string, string> = {
-  "Terminé": "#22c55e",     // Vert
-  "En cours": "#f97316",   // Orange
+  Terminé: "#22c55e", // Vert
+  "En cours": "#f97316", // Orange
   "A démarcher": "#ef4444", // Rouge
-  Refusé: "#6b7280",        // Gris
+  Refusé: "#6b7280", // Gris
 };
 
 export const DEFAULT_MAP_CENTER = { lat: 46.603354, lng: 1.888334 }; // Centre de la France

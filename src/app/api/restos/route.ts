@@ -10,15 +10,18 @@ import { normalizeStatus, isValidAddress } from "@/lib/utils";
 
 const sheetID = process.env.GOOGLE_SHEET_ID;
 const GID = process.env.GOOGLE_SHEET_GID;
-if (!sheetID || !GID) throw new Error('Missing env variables GOOGLE_SHEET_ID || GOOGLE_SHEET_GID')
+if (!sheetID || !GID)
+  throw new Error("Missing env variables GOOGLE_SHEET_ID || GOOGLE_SHEET_GID");
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&gid=${GID}`;
 
 /**
  * Parse le JSON de Google Sheets
  */
 function parseSheetJson(text: string): any {
-  // Extraire le JSON entre setResponse(...) 
-  const match = text.match(/google\.visualization\.Query\.setResponse\((.+)\);/);
+  // Extraire le JSON entre setResponse(...)
+  const match = text.match(
+    /google\.visualization\.Query\.setResponse\((.+)\);/,
+  );
   if (!match) {
     throw new Error("Format de réponse invalide");
   }
@@ -29,27 +32,31 @@ function parseSheetJson(text: string): any {
  * Récupère les données depuis Google Sheets
  */
 async function fetchSheetData(): Promise<Resto[]> {
-
   const response = await fetch(SHEET_URL, { next: { revalidate: 3600 } });
-  
+
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
   const text = await response.text();
   const data = parseSheetJson(text);
-  
+
   if (!data?.table?.cols || !data?.table?.rows) {
     throw new Error("Structure de données invalide");
   }
 
   // Trouver les indices des colonnes
   const cols = data.table.cols;
-  const nomIndex = cols.findIndex((c: { label: string }) => c.label === "Nom du resto");
-  const adresseIndex = cols.findIndex((c: { label: string }) => 
-    c.label === "Adresse" || c.label === "Adresse - lien site"
+  const nomIndex = cols.findIndex(
+    (c: { label: string }) => c.label === "Nom du resto",
   );
-  const statutIndex = cols.findIndex((c: { label: string }) => c.label === "Statut");
+  const adresseIndex = cols.findIndex(
+    (c: { label: string }) =>
+      c.label === "Adresse" || c.label === "Adresse - lien site",
+  );
+  const statutIndex = cols.findIndex(
+    (c: { label: string }) => c.label === "Statut",
+  );
 
   if (nomIndex === -1 || adresseIndex === -1) {
     throw new Error("Colonnes requises non trouvées");
@@ -64,10 +71,10 @@ async function fetchSheetData(): Promise<Resto[]> {
     const statut = statutIndex !== -1 ? cells[statutIndex]?.v : null;
 
     if (!nom || !rawAdresse) continue;
-    
+
     let adresse = String(rawAdresse).trim();
     if (!isValidAddress(adresse)) continue;
-    
+
     // Ajouter "Grenoble, France" si l'adresse ne contient pas déjà Grenoble ou un code postal 38xxx
     const hasLocation = /(grenoble|38[0-9]{3})/i.test(adresse);
     if (!hasLocation) {
@@ -87,7 +94,7 @@ async function fetchSheetData(): Promise<Resto[]> {
 export async function GET() {
   try {
     const restos = await fetchSheetData();
-    
+
     return NextResponse.json({
       success: true,
       restos,
@@ -95,14 +102,14 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Erreur récupération restos:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: ERROR_MESSAGES.SHEET_FETCH_FAILED,
         details: error instanceof Error ? error.message : "Erreur inconnue",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

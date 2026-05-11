@@ -17,9 +17,16 @@ export default function Home() {
   const [restos, setRestos] = useState<Resto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedResto, setSelectedResto] = useState<RestoWithCoords | null>(null);
+  const [selectedResto, setSelectedResto] = useState<RestoWithCoords | null>(
+    null,
+  );
 
-  const { restosWithCoords, isLoading: isGeocoding, error: geocodeError, geocodeAll } = useGeocode();
+  const {
+    restosWithCoords,
+    isLoading: isGeocoding,
+    error: geocodeError,
+    geocodeAll,
+  } = useGeocode();
 
   // Récupérer les restaurants depuis l'API
   const fetchRestos = useCallback(async () => {
@@ -37,7 +44,7 @@ export default function Home() {
       setRestos(data.restos || []);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : ERROR_MESSAGES.SHEET_FETCH_FAILED
+        err instanceof Error ? err.message : ERROR_MESSAGES.SHEET_FETCH_FAILED,
       );
     } finally {
       setIsLoading(false);
@@ -62,7 +69,8 @@ export default function Home() {
   }, []);
 
   // Filtrer les restaurants avec et sans coordonnées
-  const { withCoords, withoutCoords } = filterRestosWithCoords(restosWithCoords);
+  const { withCoords, withoutCoords } =
+    filterRestosWithCoords(restosWithCoords);
 
   // État global de chargement
   const isLoadingGlobal = isLoading || isGeocoding;
@@ -75,8 +83,8 @@ export default function Home() {
           Liste des restaurants
         </h2>
         <p className="text-gray-600 max-w-2xl">
-          Cette carte affiche tous les restaurants listés dans la feuille de calcul.
-          Les marqueurs sont colorés en fonction de leur statut.
+          Cette carte affiche tous les restaurants listés dans la feuille de
+          calcul. Les marqueurs sont colorés en fonction de leur statut.
         </p>
       </section>
 

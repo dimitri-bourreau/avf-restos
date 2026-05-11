@@ -44,7 +44,8 @@ export function MissingRestos({ restos }: MissingRestosProps) {
         ))}
       </ul>
       <p className="text-xs text-amber-600 mt-4">
-        Vérifiez l&apos;orthographe des adresses ou essayez une recherche manuelle.
+        Vérifiez l&apos;orthographe des adresses ou essayez une recherche
+        manuelle.
       </p>
     </aside>
   );
