@@ -62,16 +62,16 @@ async function fetchSheetData(): Promise<Resto[]> {
 
   // Parser les lignes
   const restos: Resto[] = [];
-  for (const row of data.table.rows) {
+  data.table.rows.forEach((row, index) => {
     const cells = row.c;
     const nom = cells[nomIndex]?.v;
     const rawAdresse = cells[adresseIndex]?.v;
     const statut = statutIndex !== -1 ? cells[statutIndex]?.v : null;
 
-    if (!nom || !rawAdresse) continue;
+    if (!nom || !rawAdresse) return;
 
     let adresse = String(rawAdresse).trim();
-    if (!isValidAddress(adresse)) continue;
+    if (!isValidAddress(adresse)) return;
 
     // Ajouter "Grenoble, France" si l'adresse ne contient pas déjà Grenoble ou un code postal 38xxx
     const hasLocation = /(grenoble|38[0-9]{3})/i.test(adresse);
@@ -79,12 +79,16 @@ async function fetchSheetData(): Promise<Resto[]> {
       adresse = `${adresse}, Grenoble, France`;
     }
 
+    // Numéro de ligne dans la sheet (1-indexed, ligne 1 = en-tête)
+    const sheetRowNumber = index + 2;
+
     restos.push({
       nom: nom.trim(),
       adresse,
       statut: normalizeStatus(statut),
+      sheetRowNumber,
     });
-  }
+  });
 
   return restos;
 }

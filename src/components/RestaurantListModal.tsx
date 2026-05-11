@@ -174,13 +174,13 @@ export function RestaurantListModal({ restos }: RestaurantListModalProps) {
               </p>
             ) : (
               <div className="space-y-2">
-                {filteredRestos.map((resto, index) => (
+                {filteredRestos.map((resto) => (
                   <div
-                    key={`${resto.nom}-${index}`}
+                    key={`${resto.nom}-${resto.sheetRowNumber}`}
                     className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-sm text-gray-400 font-mono mt-1 flex-shrink-0">
-                      {index + 2}
+                      {resto.sheetRowNumber}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-gray-800 truncate">

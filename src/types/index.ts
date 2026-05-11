@@ -10,6 +10,7 @@ export interface Resto {
   nom: string;
   adresse: string;
   statut: RestoStatus;
+  sheetRowNumber?: number; // Numéro de ligne dans la Google Sheet (1-indexed)
 }
 
 export interface RestoWithCoords extends Resto {
