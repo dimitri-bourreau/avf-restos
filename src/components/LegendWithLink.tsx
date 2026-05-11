@@ -1,9 +1,10 @@
 /**
- * Encart en bas à gauche avec la légende et le lien vers la Google Sheet
+ * Légende des statuts et lien vers la Google Sheet
+ * Toujours visible en bas à gauche
  */
 
-const SHEET_URL = process.env.GOOGLE_SHEET_URL;
-if (!SHEET_URL) throw new Error("Missing env variable GOOGLE_SHEET_URL");
+const SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1XkhOrwzI9VIKxmUmoctAXqd-AyYo5w8-/edit?gid=1880466191";
 
 const STATUS_COLORS = {
   Terminé: "bg-green-500",
@@ -12,24 +13,22 @@ const STATUS_COLORS = {
   Refusé: "bg-gray-500",
 } as const;
 
-const STATUS_LABELS = ["Terminé", "En cours", "A démarcher", "Refusé"] as const;
+const ALL_STATUSES = ["Terminé", "En cours", "A démarcher", "Refusé"] as const;
 
 export function LegendWithLink() {
   return (
     <div className="fixed bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-20 max-w-xs">
-      <div className="mb-3">
-        <h3 className="font-semibold text-gray-800 mb-2">Légende :</h3>
-        <div className="flex flex-wrap gap-2">
-          {STATUS_LABELS.map((label) => (
-            <div key={label} className="flex items-center gap-1.5">
-              <div
-                className={`w-3 h-3 rounded-full ${STATUS_COLORS[label]}`}
-                aria-hidden="true"
-              />
-              <span className="text-xs text-gray-600">{label}</span>
-            </div>
-          ))}
-        </div>
+      <h3 className="font-semibold text-gray-800 mb-2">Légende :</h3>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {ALL_STATUSES.map((label) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <div
+              className={`w-3 h-3 rounded-full ${STATUS_COLORS[label]}`}
+              aria-hidden="true"
+            />
+            <span className="text-xs text-gray-600">{label}</span>
+          </div>
+        ))}
       </div>
       <a
         href={SHEET_URL}

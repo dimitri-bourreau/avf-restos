@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Map } from "@/components/Map";
-import { SideNav } from "@/components/SideNav";
+import { RestaurantListModal } from "@/components/RestaurantListModal";
 import { LegendWithLink } from "@/components/LegendWithLink";
 import { MissingRestos } from "@/components/MissingRestos";
 import { useGeocode } from "@/hooks/useGeocode";
@@ -74,10 +74,10 @@ export default function Home() {
       {/* Carte en plein écran */}
       <Map restos={restosWithCoords} />
 
-      {/* Side nav avec la liste des restaurants */}
-      <SideNav restos={restos} />
+      {/* Bouton pour afficher la liste + modal */}
+      <RestaurantListModal restos={restos} />
 
-      {/* Légende + lien en bas à gauche */}
+      {/* Légende + lien toujours visible */}
       <LegendWithLink />
 
       {/* Restaurants non géocodés */}

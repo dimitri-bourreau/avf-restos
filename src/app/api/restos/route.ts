@@ -8,11 +8,9 @@ import { Resto } from "@/types";
 import { ERROR_MESSAGES } from "@/lib/constants";
 import { normalizeStatus, isValidAddress } from "@/lib/utils";
 
-const sheetID = process.env.GOOGLE_SHEET_ID;
-const GID = process.env.GOOGLE_SHEET_GID;
-if (!sheetID || !GID)
-  throw new Error("Missing env variables GOOGLE_SHEET_ID || GOOGLE_SHEET_GID");
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&gid=${GID}`;
+const SHEET_ID = "1XkhOrwzI9VIKxmUmoctAXqd-AyYo5w8-";
+const GID = "1880466191";
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
 
 /**
  * Parse le JSON de Google Sheets
