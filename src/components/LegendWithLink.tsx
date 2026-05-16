@@ -1,7 +1,9 @@
 /**
- * Légende des statuts et lien vers la Google Sheet
+ * Légende des statuts (filtrables) et lien vers la Google Sheet
  * Toujours visible en bas à gauche
  */
+
+"use client";
 
 const SHEET_URL =
   "https://docs.google.com/spreadsheets/d/1XkhOrwzI9VIKxmUmoctAXqd-AyYo5w8-/edit?gid=1880466191";
@@ -22,20 +24,46 @@ const ALL_STATUSES = [
   "2025",
 ] as const;
 
-export function LegendWithLink() {
+type Status = (typeof ALL_STATUSES)[number];
+
+interface LegendWithLinkProps {
+  selectedStatus: string | null;
+  onStatusFilter: (status: string | null) => void;
+}
+
+export function LegendWithLink({
+  selectedStatus,
+  onStatusFilter,
+}: LegendWithLinkProps) {
+  const handleClick = (status: Status) => {
+    onStatusFilter(selectedStatus === status ? null : status);
+  };
+
   return (
     <div className="fixed bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-20 max-w-xs">
       <h3 className="font-semibold text-gray-800 mb-2">Légende :</h3>
       <div className="flex flex-wrap gap-2 mb-3">
-        {ALL_STATUSES.map((label) => (
-          <div key={label} className="flex items-center gap-1.5">
-            <div
-              className={`w-3 h-3 rounded-full ${STATUS_COLORS[label]}`}
-              aria-hidden="true"
-            />
-            <span className="text-xs text-gray-600">{label}</span>
-          </div>
-        ))}
+        {ALL_STATUSES.map((status) => {
+          const isActive = selectedStatus === status;
+          return (
+            <button
+              key={status}
+              onClick={() => handleClick(status)}
+              aria-pressed={isActive}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-full border transition-colors ${
+                isActive
+                  ? "border-gray-800 bg-gray-100"
+                  : "border-transparent hover:bg-gray-50"
+              }`}
+            >
+              <div
+                className={`w-3 h-3 rounded-full ${STATUS_COLORS[status]}`}
+                aria-hidden="true"
+              />
+              <span className="text-xs text-gray-600">{status}</span>
+            </button>
+          );
+        })}
       </div>
       <a
         href={SHEET_URL}

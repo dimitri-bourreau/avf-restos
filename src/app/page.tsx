@@ -19,6 +19,7 @@ export default function Home() {
   const [restos, setRestos] = useState<Resto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   const {
     restosWithCoords,
@@ -66,19 +67,27 @@ export default function Home() {
   const { withCoords, withoutCoords } =
     filterRestosWithCoords(restosWithCoords);
 
+  // Appliquer le filtre de statut pour la carte
+  const filteredRestos = selectedStatus
+    ? restosWithCoords.filter((r) => r.statut === selectedStatus)
+    : restosWithCoords;
+
   // État global de chargement
   const isLoadingGlobal = isLoading || isGeocoding;
 
   return (
     <div className="relative w-screen h-screen">
       {/* Carte en plein écran */}
-      <Map restos={restosWithCoords} />
+      <Map restos={filteredRestos} />
 
       {/* Bouton pour afficher la liste + modal */}
       <RestaurantListModal restos={restos} />
 
       {/* Légende + lien toujours visible */}
-      <LegendWithLink />
+      <LegendWithLink
+        selectedStatus={selectedStatus}
+        onStatusFilter={setSelectedStatus}
+      />
 
       {/* Restaurants non géocodés */}
       {!isLoadingGlobal && withoutCoords.length > 0 && (
