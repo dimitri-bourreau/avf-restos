@@ -12,9 +12,16 @@ const STATUS_COLORS = {
   "En cours": "bg-orange-500",
   "A démarcher": "bg-red-500",
   Refusé: "bg-gray-500",
+  "2025": "bg-black",
 } as const;
 
-const ALL_STATUSES = ["Terminé", "En cours", "A démarcher", "Refusé"] as const;
+const ALL_STATUSES = [
+  "Terminé",
+  "En cours",
+  "A démarcher",
+  "Refusé",
+  "2025",
+] as const;
 
 interface RestaurantListModalProps {
   restos: Resto[];

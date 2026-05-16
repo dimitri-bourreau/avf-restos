@@ -43,6 +43,7 @@ export const STATUS_COLORS: Record<string, string> = {
   "En cours": "#f97316", // Orange
   "A démarcher": "#ef4444", // Rouge
   Refusé: "#6b7280", // Gris
+  "2025": "#000000", // Noir
 };
 
 export const DEFAULT_MAP_CENTER = { lat: 46.603354, lng: 1.888334 }; // Centre de la France

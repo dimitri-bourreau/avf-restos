@@ -30,8 +30,8 @@ interface GoogleSheetData {
 }
 
 const SHEET_ID = "1XkhOrwzI9VIKxmUmoctAXqd-AyYo5w8-";
-const GID = "1880466191";
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+const GID_PRINCIPAL = "1880466191";
+const GID_TERMINES_2025 = "505702853";
 
 /**
  * Parse le JSON de Google Sheets
@@ -48,10 +48,16 @@ function parseSheetJson(text: string): GoogleSheetData {
 }
 
 /**
- * Récupère les données depuis Google Sheets
+ * Récupère les données depuis un onglet Google Sheets
+ * @param gid - L'identifiant de l'onglet (gid dans l'URL)
+ * @param defaultStatus - Si fourni, utilise ce statut pour tous les restaurants (ignore la colonne Statut)
  */
-async function fetchSheetData(): Promise<Resto[]> {
-  const response = await fetch(SHEET_URL, { next: { revalidate: 3600 } });
+async function fetchSheetData(
+  gid: string,
+  defaultStatus?: string,
+): Promise<Resto[]> {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
+  const response = await fetch(url, { next: { revalidate: 3600 } });
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -87,7 +93,8 @@ async function fetchSheetData(): Promise<Resto[]> {
     const cells = row.c;
     const nom = cells[nomIndex]?.v;
     const rawAdresse = cells[adresseIndex]?.v;
-    const statut = statutIndex !== -1 ? cells[statutIndex]?.v : null;
+    const rawStatut =
+      defaultStatus ?? (statutIndex !== -1 ? cells[statutIndex]?.v : null);
 
     if (!nom || !rawAdresse) return;
 
@@ -106,7 +113,7 @@ async function fetchSheetData(): Promise<Resto[]> {
     restos.push({
       nom: nom.trim(),
       adresse,
-      statut: normalizeStatus(statut),
+      statut: defaultStatus ?? normalizeStatus(rawStatut),
       sheetRowNumber,
     });
   });
@@ -116,7 +123,12 @@ async function fetchSheetData(): Promise<Resto[]> {
 
 export async function GET() {
   try {
-    const restos = await fetchSheetData();
+    const [restosPrincipal, restosTermines2025] = await Promise.all([
+      fetchSheetData(GID_PRINCIPAL),
+      fetchSheetData(GID_TERMINES_2025, "2025"),
+    ]);
+
+    const restos = [...restosPrincipal, ...restosTermines2025];
 
     return NextResponse.json({
       success: true,
