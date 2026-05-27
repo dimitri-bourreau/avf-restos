@@ -26,11 +26,26 @@ function createMarkerIcon(status: string) {
   const color = STATUS_COLORS[status] || "#6b7280";
   return {
     path: google.maps.SymbolPath.CIRCLE,
-    scale: 10,
+    scale: 12,
     fillColor: color,
     fillOpacity: 1,
     strokeWeight: 2,
     strokeColor: "#ffffff",
+  };
+}
+
+/**
+ * Crée le label affiché dans la pastille (chiffre du niveau, ou rien)
+ */
+function createMarkerLabel(
+  niveau: number | null,
+): google.maps.MarkerLabel | undefined {
+  if (niveau === null) return undefined;
+  return {
+    text: String(niveau),
+    color: "#ffffff",
+    fontSize: "11px",
+    fontWeight: "bold",
   };
 }
 
@@ -131,6 +146,7 @@ function MapInner({
         map: mapInstance,
         title: resto.nom,
         icon: createMarkerIcon(resto.statut),
+        label: createMarkerLabel(resto.niveau),
       });
 
       // Ajouter l'event listener pour le clic

@@ -11,7 +11,7 @@ import { RestaurantListModal } from "@/components/RestaurantListModal";
 import { LegendWithLink } from "@/components/LegendWithLink";
 import { MissingRestos } from "@/components/MissingRestos";
 import { useGeocode } from "@/hooks/useGeocode";
-import type { Resto, RestoWithCoords } from "@/types";
+import type { Resto, RestoWithCoords, Niveau } from "@/types";
 import { filterRestosWithCoords } from "@/lib/utils";
 import { ERROR_MESSAGES } from "@/lib/constants";
 
@@ -20,6 +20,17 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedNiveaux, setSelectedNiveaux] = useState<Niveau[]>([]);
+
+  const toggleNiveau = useCallback((niveau: Niveau) => {
+    setSelectedNiveaux((prev) =>
+      prev.includes(niveau)
+        ? prev.filter((n) => n !== niveau)
+        : [...prev, niveau],
+    );
+  }, []);
+
+  const clearNiveaux = useCallback(() => setSelectedNiveaux([]), []);
 
   const {
     restosWithCoords,
@@ -67,10 +78,15 @@ export default function Home() {
   const { withCoords, withoutCoords } =
     filterRestosWithCoords(restosWithCoords);
 
-  // Appliquer le filtre de statut pour la carte
-  const filteredRestos = selectedStatus
-    ? restosWithCoords.filter((r) => r.statut === selectedStatus)
-    : restosWithCoords;
+  // Appliquer les filtres (statut + niveaux) pour la carte
+  const filteredRestos = restosWithCoords.filter((r) => {
+    if (selectedStatus && r.statut !== selectedStatus) return false;
+    if (selectedNiveaux.length > 0) {
+      if (r.niveau === null) return false;
+      if (!selectedNiveaux.includes(r.niveau)) return false;
+    }
+    return true;
+  });
 
   // État global de chargement
   const isLoadingGlobal = isLoading || isGeocoding;
@@ -93,6 +109,9 @@ export default function Home() {
         <LegendWithLink
           selectedStatus={selectedStatus}
           onStatusFilter={setSelectedStatus}
+          selectedNiveaux={selectedNiveaux}
+          onToggleNiveau={toggleNiveau}
+          onClearNiveaux={clearNiveaux}
         />
 
         {!isLoadingGlobal && withoutCoords.length > 0 && (

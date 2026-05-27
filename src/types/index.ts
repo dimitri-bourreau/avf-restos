@@ -6,10 +6,13 @@ export type RestoStatus =
   | "Inactif"
   | string;
 
+export type Niveau = 1 | 2 | 3 | 4;
+
 export interface Resto {
   nom: string;
   adresse: string;
   statut: RestoStatus;
+  niveau: Niveau | null;
   sheetRowNumber?: number; // Numéro de ligne dans la Google Sheet (1-indexed)
 }
 

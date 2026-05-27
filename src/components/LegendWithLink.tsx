@@ -5,6 +5,9 @@
 
 "use client";
 
+import type { Niveau } from "@/types";
+import { NiveauxFilter } from "./NiveauxFilter";
+
 const SHEET_URL =
   "https://docs.google.com/spreadsheets/d/1XkhOrwzI9VIKxmUmoctAXqd-AyYo5w8-/edit?gid=1880466191";
 
@@ -29,11 +32,17 @@ type Status = (typeof ALL_STATUSES)[number];
 interface LegendWithLinkProps {
   selectedStatus: string | null;
   onStatusFilter: (status: string | null) => void;
+  selectedNiveaux: Niveau[];
+  onToggleNiveau: (niveau: Niveau) => void;
+  onClearNiveaux: () => void;
 }
 
 export function LegendWithLink({
   selectedStatus,
   onStatusFilter,
+  selectedNiveaux,
+  onToggleNiveau,
+  onClearNiveaux,
 }: LegendWithLinkProps) {
   const handleClick = (status: Status) => {
     onStatusFilter(selectedStatus === status ? null : status);
@@ -42,7 +51,7 @@ export function LegendWithLink({
   return (
     <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-20 max-w-xs">
       <h3 className="font-semibold text-gray-800 mb-2">Légende :</h3>
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-col gap-1 mb-3">
         {ALL_STATUSES.map((status) => {
           const isActive = selectedStatus === status;
           return (
@@ -65,6 +74,11 @@ export function LegendWithLink({
           );
         })}
       </div>
+      <NiveauxFilter
+        selectedNiveaux={selectedNiveaux}
+        onToggleNiveau={onToggleNiveau}
+        onClearAll={onClearNiveaux}
+      />
       <a
         href={SHEET_URL}
         target="_blank"

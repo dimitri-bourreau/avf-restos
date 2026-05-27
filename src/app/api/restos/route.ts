@@ -4,9 +4,15 @@
  */
 
 import { NextResponse } from "next/server";
-import { Resto } from "@/types";
+import { Resto, Niveau } from "@/types";
 import { ERROR_MESSAGES } from "@/lib/constants";
 import { normalizeStatus, isValidAddress } from "@/lib/utils";
+
+function parseNiveau(raw: unknown): Niveau | null {
+  if (raw == null) return null;
+  const n = Number(raw);
+  return n === 1 || n === 2 || n === 3 || n === 4 ? n : null;
+}
 
 // Types pour la réponse Google Sheets
 interface GoogleSheetCell {
@@ -82,6 +88,9 @@ async function fetchSheetData(
   const statutIndex = cols.findIndex(
     (c: { label: string }) => c.label === "Statut",
   );
+  const niveauIndex = cols.findIndex(
+    (c: { label: string }) => c.label === "Niveau",
+  );
 
   if (nomIndex === -1 || adresseIndex === -1) {
     throw new Error("Colonnes requises non trouvées");
@@ -95,6 +104,8 @@ async function fetchSheetData(
     const rawAdresse = cells[adresseIndex]?.v;
     const rawStatut =
       defaultStatus ?? (statutIndex !== -1 ? cells[statutIndex]?.v : null);
+    const niveau =
+      niveauIndex !== -1 ? parseNiveau(cells[niveauIndex]?.v) : null;
 
     if (!nom || !rawAdresse) return;
 
@@ -114,6 +125,7 @@ async function fetchSheetData(
       nom: nom.trim(),
       adresse,
       statut: defaultStatus ?? normalizeStatus(rawStatut),
+      niveau,
       sheetRowNumber,
     });
   });
