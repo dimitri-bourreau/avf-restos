@@ -183,7 +183,7 @@ function MapInner({
 export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
   if (!apiKey) {
     return (
-      <div className="fixed inset-0 bg-red-50 flex items-center justify-center">
+      <div className="w-full h-full bg-red-50 flex items-center justify-center">
         <p className="text-red-700 font-medium">
           Clé API Google Maps non configurée
         </p>
@@ -192,7 +192,7 @@ export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
   }
 
   return (
-    <div className="fixed inset-0">
+    <div className="w-full h-full">
       <Wrapper apiKey={apiKey} libraries={["places"]} version="weekly">
         <MapInner restos={restos} onMarkerClick={onMarkerClick} />
       </Wrapper>

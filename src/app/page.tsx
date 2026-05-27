@@ -76,51 +76,57 @@ export default function Home() {
   const isLoadingGlobal = isLoading || isGeocoding;
 
   return (
-    <div className="relative w-screen h-screen">
-      {/* Carte en plein écran */}
-      <Map restos={filteredRestos} />
+    <div className="h-screen bg-[#0e983a] flex flex-col">
+      {/* Titre */}
+      <header className="px-4 pt-4 pb-3 sm:px-6 sm:pt-5 sm:pb-4 flex-shrink-0">
+        <h1 className="text-white text-xl sm:text-2xl font-semibold">
+          AVF - Suivi des signatures de la charte
+        </h1>
+      </header>
 
-      {/* Bouton pour afficher la liste + modal */}
-      <RestaurantListModal restos={restos} />
+      {/* Bloc carte */}
+      <div className="flex-1 relative overflow-hidden rounded-none sm:rounded-2xl sm:mx-4 sm:mb-4 min-h-0">
+        <Map restos={filteredRestos} />
 
-      {/* Légende + lien toujours visible */}
-      <LegendWithLink
-        selectedStatus={selectedStatus}
-        onStatusFilter={setSelectedStatus}
-      />
+        <RestaurantListModal restos={restos} />
 
-      {/* Restaurants non géocodés */}
-      {!isLoadingGlobal && withoutCoords.length > 0 && (
-        <MissingRestos restos={withoutCoords} />
-      )}
+        <LegendWithLink
+          selectedStatus={selectedStatus}
+          onStatusFilter={setSelectedStatus}
+        />
 
-      {/* Messages d'erreur */}
-      {(error || geocodeError) && (
-        <div
-          className="fixed top-4 left-4 bg-red-50 border border-red-200 rounded-lg p-4 max-w-xs z-30"
-          role="alert"
-          aria-live="assertive"
-        >
-          {error && <p className="text-red-700 font-medium">❌ {error}</p>}
-          {geocodeError && (
-            <p className="text-red-700 font-medium">⚠️ {geocodeError}</p>
-          )}
-        </div>
-      )}
-
-      {/* Chargement */}
-      {isLoadingGlobal && (
-        <div
-          className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-30"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Chargement des restaurants...</p>
+        {!isLoadingGlobal && withoutCoords.length > 0 && (
+          <div className="absolute top-4 right-4 z-20">
+            <MissingRestos restos={withoutCoords} />
           </div>
-        </div>
-      )}
+        )}
+
+        {(error || geocodeError) && (
+          <div
+            className="absolute top-4 left-4 bg-red-50 border border-red-200 rounded-lg p-4 max-w-xs z-30"
+            role="alert"
+            aria-live="assertive"
+          >
+            {error && <p className="text-red-700 font-medium">❌ {error}</p>}
+            {geocodeError && (
+              <p className="text-red-700 font-medium">⚠️ {geocodeError}</p>
+            )}
+          </div>
+        )}
+
+        {isLoadingGlobal && (
+          <div
+            className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-30"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement des restaurants...</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

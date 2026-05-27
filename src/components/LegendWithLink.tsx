@@ -40,7 +40,7 @@ export function LegendWithLink({
   };
 
   return (
-    <div className="fixed bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-20 max-w-xs">
+    <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-20 max-w-xs">
       <h3 className="font-semibold text-gray-800 mb-2">Légende :</h3>
       <div className="flex flex-wrap gap-2 mb-3">
         {ALL_STATUSES.map((status) => {

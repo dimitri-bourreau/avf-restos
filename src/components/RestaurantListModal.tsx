@@ -53,7 +53,7 @@ export function RestaurantListModal({ restos }: RestaurantListModalProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 bg-white rounded-lg shadow-lg p-3 hover:bg-gray-50 transition-colors flex items-center gap-2 z-20"
+        className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-3 hover:bg-gray-50 transition-colors flex items-center gap-2 z-20"
         aria-label="Afficher la liste des restaurants"
       >
         <svg
@@ -82,7 +82,7 @@ export function RestaurantListModal({ restos }: RestaurantListModalProps) {
       {/* Bouton pour ouvrir la liste */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 left-36 bg-white rounded-lg shadow-lg p-3 hover:bg-gray-50 transition-colors flex items-center gap-2 z-20"
+        className="absolute bottom-4 left-36 bg-white rounded-lg shadow-lg p-3 hover:bg-gray-50 transition-colors flex items-center gap-2 z-20"
         aria-label="Afficher la liste des restaurants"
       >
         <svg
@@ -105,7 +105,7 @@ export function RestaurantListModal({ restos }: RestaurantListModalProps) {
       </button>
 
       {/* Modal de la liste */}
-      <div className="fixed inset-0 bg-white/95 backdrop-blur-sm z-30 flex flex-col">
+      <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-30 flex flex-col">
         {/* En-tête */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">
