@@ -54,16 +54,21 @@ function createMarkerLabel(
  */
 function createInfoWindowContent(resto: RestoWithCoords): string {
   const bgColor = STATUS_COLORS[resto.statut] || "#6b7280";
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resto.nom + " " + resto.adresse)}`;
   return `
-    <div class="p-2">
+    <div style="padding:12px 40px 12px 12px; min-width:200px;">
       <h3 class="font-bold text-lg">${resto.nom}</h3>
       <p class="text-gray-600">${resto.adresse}</p>
       <p class="mt-1">
-        <span class="inline-block px-2 py-1 rounded text-xs font-medium" 
+        <span class="inline-block px-2 py-1 rounded text-xs font-medium"
               style="background-color: ${bgColor}; color: white;">
           ${resto.statut}
         </span>
       </p>
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+         style="display:inline-block;margin-top:8px;font-size:12px;color:#1a73e8;text-decoration:none;">
+        Voir sur Google Maps
+      </a>
     </div>
   `;
 }
@@ -74,9 +79,11 @@ function createInfoWindowContent(resto: RestoWithCoords): string {
 function MapInner({
   restos,
   onMarkerClick,
+  selectedResto,
 }: {
   restos: RestoWithCoords[];
   onMarkerClick?: (resto: RestoWithCoords) => void;
+  selectedResto?: RestoWithCoords | null;
 }) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
@@ -181,10 +188,29 @@ function MapInner({
     }
 
     return () => {
-      // Nettoyer les marqueurs
       newMarkers.forEach((marker) => marker.setMap(null));
     };
   }, [validRestos, onMarkerClick, center, bounds]);
+
+  // Zoomer sur le restaurant sélectionné depuis la liste
+  useEffect(() => {
+    if (
+      !map ||
+      !selectedResto ||
+      selectedResto.lat === null ||
+      selectedResto.lng === null
+    )
+      return;
+    const pos = { lat: selectedResto.lat, lng: selectedResto.lng };
+    map.panTo(pos);
+    map.setZoom(17);
+    if (infoWindowRef.current) {
+      infoWindowRef.current.close();
+      infoWindowRef.current.setContent(createInfoWindowContent(selectedResto));
+      infoWindowRef.current.setPosition(pos);
+      infoWindowRef.current.open(map);
+    }
+  }, [selectedResto, map]);
 
   return (
     <div
@@ -210,7 +236,11 @@ export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
   return (
     <div className="w-full h-full">
       <Wrapper apiKey={apiKey} libraries={["places"]} version="weekly">
-        <MapInner restos={restos} onMarkerClick={onMarkerClick} />
+        <MapInner
+          restos={restos}
+          onMarkerClick={onMarkerClick}
+          selectedResto={selectedResto}
+        />
       </Wrapper>
     </div>
   );

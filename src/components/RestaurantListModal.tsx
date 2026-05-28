@@ -25,9 +25,13 @@ const ALL_STATUSES = [
 
 interface RestaurantListModalProps {
   restos: Resto[];
+  onSelectResto?: (resto: Resto) => void;
 }
 
-export function RestaurantListModal({ restos }: RestaurantListModalProps) {
+export function RestaurantListModal({
+  restos,
+  onSelectResto,
+}: RestaurantListModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
@@ -184,7 +188,11 @@ export function RestaurantListModal({ restos }: RestaurantListModalProps) {
                 {filteredRestos.map((resto) => (
                   <div
                     key={`${resto.nom}-${resto.sheetRowNumber}`}
-                    className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                    className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      onSelectResto?.(resto);
+                      setIsOpen(false);
+                    }}
                   >
                     <span className="text-sm text-gray-400 font-mono mt-1 flex-shrink-0">
                       {resto.sheetRowNumber}

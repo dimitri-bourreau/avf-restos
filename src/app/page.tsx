@@ -21,6 +21,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedNiveaux, setSelectedNiveaux] = useState<Niveau[]>([]);
+  const [selectedResto, setSelectedResto] = useState<RestoWithCoords | null>(
+    null,
+  );
 
   const toggleNiveau = useCallback((niveau: Niveau) => {
     setSelectedNiveaux((prev) =>
@@ -78,6 +81,18 @@ export default function Home() {
   const { withCoords, withoutCoords } =
     filterRestosWithCoords(restosWithCoords);
 
+  const handleSelectResto = useCallback(
+    (resto: Resto) => {
+      const found =
+        restosWithCoords.find(
+          (r) =>
+            r.nom === resto.nom && r.sheetRowNumber === resto.sheetRowNumber,
+        ) ?? null;
+      setSelectedResto(found);
+    },
+    [restosWithCoords],
+  );
+
   // Appliquer les filtres (statut + niveaux) pour la carte
   const filteredRestos = restosWithCoords.filter((r) => {
     if (selectedStatus && r.statut !== selectedStatus) return false;
@@ -102,9 +117,12 @@ export default function Home() {
 
       {/* Bloc carte */}
       <div className="flex-1 relative overflow-hidden rounded-none sm:rounded-2xl sm:mx-4 sm:mb-4 min-h-0">
-        <Map restos={filteredRestos} />
+        <Map restos={filteredRestos} selectedResto={selectedResto} />
 
-        <RestaurantListModal restos={restos} />
+        <RestaurantListModal
+          restos={restos}
+          onSelectResto={handleSelectResto}
+        />
 
         <LegendWithLink
           selectedStatus={selectedStatus}
