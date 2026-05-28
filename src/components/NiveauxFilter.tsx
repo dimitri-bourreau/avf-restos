@@ -19,29 +19,14 @@ const NIVEAU_DESCRIPTIONS: Record<Niveau, string> = {
 interface NiveauxFilterProps {
   selectedNiveaux: Niveau[];
   onToggleNiveau: (niveau: Niveau) => void;
-  onClearAll: () => void;
 }
 
 export function NiveauxFilter({
   selectedNiveaux,
   onToggleNiveau,
-  onClearAll,
 }: NiveauxFilterProps) {
-  const hasActive = selectedNiveaux.length > 0;
-
   return (
     <div className="border-t border-gray-200 pt-3 mb-3">
-      <div className="flex items-baseline justify-between gap-4 mb-2">
-        <h3 className="font-semibold text-gray-800 shrink-0">Filtres :</h3>
-        {hasActive && (
-          <button
-            onClick={onClearAll}
-            className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
-          >
-            Retirer les filtres
-          </button>
-        )}
-      </div>
       <div className="flex flex-col gap-2">
         {ALL_NIVEAUX.map((n) => {
           const checked = selectedNiveaux.includes(n);

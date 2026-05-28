@@ -48,9 +48,26 @@ export function LegendWithLink({
     onStatusFilter(selectedStatus === status ? null : status);
   };
 
+  const hasAnyFilter = selectedStatus !== null || selectedNiveaux.length > 0;
+
+  const resetAll = () => {
+    onStatusFilter(null);
+    onClearNiveaux();
+  };
+
   return (
     <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-20 max-w-xs">
-      <h3 className="font-semibold text-gray-800 mb-2">Légende :</h3>
+      <div className="flex items-baseline justify-between gap-4 mb-3">
+        <h3 className="font-semibold text-gray-800 shrink-0">Filtres</h3>
+        {hasAnyFilter && (
+          <button
+            onClick={resetAll}
+            className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            Réinitialiser
+          </button>
+        )}
+      </div>
       <div className="flex flex-col gap-1 mb-3">
         {ALL_STATUSES.map((status) => {
           const isActive = selectedStatus === status;
@@ -77,7 +94,6 @@ export function LegendWithLink({
       <NiveauxFilter
         selectedNiveaux={selectedNiveaux}
         onToggleNiveau={onToggleNiveau}
-        onClearAll={onClearNiveaux}
       />
       <a
         href={SHEET_URL}
