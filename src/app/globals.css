@@ -113,25 +113,3 @@ body {
   white-space: nowrap;
   border: 0;
 }
-
-/* Style pour les info windows de Google Maps */
-.gm-style .gm-style-iw {
-  padding: 0;
-  max-width: 300px;
-}
-
-/* Dans la nouvelle API Maps, le bouton fermer est en flux normal et pousse le contenu.
-   On le repasse en position absolue pour qu'il s'superpose sans décaler le contenu. */
-.gm-style .gm-style-iw-chr {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  width: auto !important;
-}
-
-/* Cacher les contrôles indésirables sur mobile */
-@media (max-width: 768px) {
-  .gm-control-active {
-    display: none !important;
-  }
-}

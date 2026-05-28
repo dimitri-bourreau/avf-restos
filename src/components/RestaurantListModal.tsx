@@ -5,7 +5,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { Resto } from "@/types";
+import type { Resto, RestoWithCoords } from "@/types";
 
 const STATUS_COLORS = {
   Terminé: "bg-green-500",
@@ -24,7 +24,7 @@ const ALL_STATUSES = [
 ] as const;
 
 interface RestaurantListModalProps {
-  restos: Resto[];
+  restos: RestoWithCoords[];
   onSelectResto?: (resto: Resto) => void;
 }
 

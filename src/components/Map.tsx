@@ -1,17 +1,10 @@
-/**
- * Composant Carte Google Maps avec marqueurs pour les restaurants
- * Accessible et responsive
- */
-
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
-import { Wrapper } from "@googlemaps/react-wrapper";
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import type { RestoWithCoords } from "@/types";
 import { STATUS_COLORS, DEFAULT_MAP_CENTER, DEFAULT_ZOOM } from "@/types";
-
-// Clé API Google Maps (côté client - nécessaire pour l'API JavaScript)
-const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 interface MapProps {
   restos: RestoWithCoords[];
@@ -19,181 +12,122 @@ interface MapProps {
   selectedResto?: RestoWithCoords | null;
 }
 
-/**
- * Crée une icône de marqueur personnalisée avec un cercle coloré
- */
-function createMarkerIcon(status: string) {
-  const color = STATUS_COLORS[status] || "#6b7280";
-  return {
-    path: google.maps.SymbolPath.CIRCLE,
-    scale: 12,
-    fillColor: color,
-    fillOpacity: 1,
-    strokeWeight: 2,
-    strokeColor: "#ffffff",
-  };
+function markerColor(status: string): string {
+  return STATUS_COLORS[status] || "#6b7280";
 }
 
-/**
- * Crée le label affiché dans la pastille (chiffre du niveau, ou rien)
- */
-function createMarkerLabel(
-  niveau: number | null,
-): google.maps.MarkerLabel | undefined {
-  if (niveau === null) return undefined;
-  return {
-    text: String(niveau),
-    color: "#ffffff",
-    fontSize: "11px",
-    fontWeight: "bold",
-  };
+function createIcon(status: string, niveau: number | null): L.DivIcon {
+  const color = markerColor(status);
+  const label = niveau !== null ? String(niveau) : "";
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      width:24px; height:24px; border-radius:50%;
+      background:${color}; border:2px solid #fff;
+      box-shadow:0 1px 3px rgba(0,0,0,.4);
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:bold; color:#fff;
+    ">${label}</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -14],
+  });
 }
 
-/**
- * Crée une info window pour un restaurant
- */
-function createInfoWindowContent(resto: RestoWithCoords): string {
-  const bgColor = STATUS_COLORS[resto.statut] || "#6b7280";
+function popupContent(resto: RestoWithCoords): string {
+  const bgColor = markerColor(resto.statut);
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resto.nom + " " + resto.adresse)}`;
   return `
-    <div style="padding:12px 40px 12px 12px; min-width:200px;">
-      <h3 class="font-bold text-lg">${resto.nom}</h3>
-      <p class="text-gray-600">${resto.adresse}</p>
-      <p class="mt-1">
-        <span class="inline-block px-2 py-1 rounded text-xs font-medium"
-              style="background-color: ${bgColor}; color: white;">
-          ${resto.statut}
-        </span>
-      </p>
+    <div style="min-width:180px;">
+      <strong style="font-size:15px;">${resto.nom}</strong>
+      <p style="color:#555; margin:4px 0 8px; font-size:13px;">${resto.adresse}</p>
+      <span style="background:${bgColor}; color:#fff; padding:2px 8px; border-radius:4px; font-size:12px;">${resto.statut}</span>
+      <br/>
       <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
-         style="display:inline-block;margin-top:8px;font-size:12px;color:#1a73e8;text-decoration:none;">
+         style="display:inline-block; margin-top:8px; font-size:12px; color:#1a73e8; text-decoration:none;">
         Voir sur Google Maps
       </a>
     </div>
   `;
 }
 
-/**
- * Composant interne pour afficher la carte une fois l'API chargée
- */
-function MapInner({
-  restos,
-  onMarkerClick,
-  selectedResto,
-}: {
-  restos: RestoWithCoords[];
-  onMarkerClick?: (resto: RestoWithCoords) => void;
-  selectedResto?: RestoWithCoords | null;
-}) {
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
-  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
-  const mapRef = useRef<HTMLDivElement>(null);
-
-  // Filtrer les restaurants avec des coordonnées valides
-  const validRestos = useMemo(
-    () => restos.filter((r) => r.lat !== null && r.lng !== null),
-    [restos],
+export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<globalThis.Map<string, L.Marker>>(
+    new globalThis.Map(),
   );
 
-  // Calculer les bounds pour centrer la carte
-  const bounds = useMemo(() => {
-    if (validRestos.length === 0) return null;
-
-    const b = new google.maps.LatLngBounds();
-    validRestos.forEach((r) => {
-      if (r.lat && r.lng) {
-        b.extend(new google.maps.LatLng(r.lat, r.lng));
-      }
-    });
-    return b;
-  }, [validRestos]);
-
-  // Centrer la carte
-  const center = useMemo(() => {
-    if (validRestos.length === 0) return DEFAULT_MAP_CENTER;
-    if (bounds) {
-      return bounds.getCenter()?.toJSON() || DEFAULT_MAP_CENTER;
-    }
-    return DEFAULT_MAP_CENTER;
-  }, [validRestos, bounds]);
-
-  // Initialiser la carte
+  // Initialiser la carte une seule fois
   useEffect(() => {
-    if (!mapRef.current || !window.google || !window.google.maps) return;
+    if (!containerRef.current || mapRef.current) return;
 
-    const mapInstance = new google.maps.Map(mapRef.current, {
-      center,
-      zoom: validRestos.length <= 1 ? DEFAULT_ZOOM : undefined,
-      gestureHandling: "greedy",
-      fullscreenControl: false,
-      mapTypeControl: false,
-      streetViewControl: false,
-      zoomControl: true,
-      styles: [
-        {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "on" }],
-        },
-      ],
+    const map = L.map(containerRef.current, {
+      center: [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng],
+      zoom: DEFAULT_ZOOM,
+      zoomControl: false,
     });
 
-    setMap(mapInstance);
-    infoWindowRef.current = new google.maps.InfoWindow();
+    L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    // Créer les marqueurs
-    const newMarkers: google.maps.Marker[] = [];
+    // CartoDB Positron — style épuré, fond clair
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      {
+        attribution:
+          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 20,
+      },
+    ).addTo(map);
 
-    validRestos.forEach((resto) => {
-      if (resto.lat === null || resto.lng === null) return;
-
-      const marker = new google.maps.Marker({
-        position: { lat: resto.lat, lng: resto.lng },
-        map: mapInstance,
-        title: resto.nom,
-        icon: createMarkerIcon(resto.statut),
-        label: createMarkerLabel(resto.niveau),
-      });
-
-      // Ajouter l'event listener pour le clic
-      marker.addListener("click", () => {
-        // Fermer l'info window existante
-        if (infoWindowRef.current) {
-          infoWindowRef.current.close();
-        }
-
-        // Créer le contenu
-        const content = createInfoWindowContent(resto);
-
-        // Ouvrir l'info window
-        infoWindowRef.current?.setContent(content);
-        infoWindowRef.current?.open({
-          anchor: marker,
-          map: mapInstance,
-        });
-
-        // Appeler le callback si fourni
-        onMarkerClick?.(resto);
-      });
-
-      newMarkers.push(marker);
-    });
-
-    setMarkers(newMarkers);
-
-    // Ajuster les bounds si nécessaire
-    if (bounds && validRestos.length > 0) {
-      mapInstance.fitBounds(bounds);
-    }
+    mapRef.current = map;
 
     return () => {
-      newMarkers.forEach((marker) => marker.setMap(null));
+      map.remove();
+      mapRef.current = null;
     };
-  }, [validRestos, onMarkerClick, center, bounds]);
+  }, []);
+
+  // Mettre à jour les marqueurs quand la liste change
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Supprimer les anciens marqueurs
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current.clear();
+
+    const valid = restos.filter((r) => r.lat !== null && r.lng !== null);
+    if (valid.length === 0) return;
+
+    const bounds: [number, number][] = [];
+
+    valid.forEach((resto) => {
+      const marker = L.marker([resto.lat!, resto.lng!], {
+        icon: createIcon(resto.statut, resto.niveau),
+        title: resto.nom,
+      });
+
+      marker.bindPopup(popupContent(resto));
+      marker.on("click", () => onMarkerClick?.(resto));
+      marker.addTo(map);
+
+      const key = `${resto.nom}-${resto.sheetRowNumber}`;
+      markersRef.current.set(key, marker);
+      bounds.push([resto.lat!, resto.lng!]);
+    });
+
+    if (bounds.length > 1) {
+      map.fitBounds(bounds, { padding: [32, 32] });
+    } else if (bounds.length === 1) {
+      map.setView(bounds[0], 15);
+    }
+  }, [restos, onMarkerClick]);
 
   // Zoomer sur le restaurant sélectionné depuis la liste
   useEffect(() => {
+    const map = mapRef.current;
     if (
       !map ||
       !selectedResto ||
@@ -201,47 +135,25 @@ function MapInner({
       selectedResto.lng === null
     )
       return;
-    const pos = { lat: selectedResto.lat, lng: selectedResto.lng };
-    map.panTo(pos);
-    map.setZoom(17);
-    if (infoWindowRef.current) {
-      infoWindowRef.current.close();
-      infoWindowRef.current.setContent(createInfoWindowContent(selectedResto));
-      infoWindowRef.current.setPosition(pos);
-      infoWindowRef.current.open(map);
-    }
-  }, [selectedResto, map]);
 
+    const pos: [number, number] = [selectedResto.lat, selectedResto.lng];
+    map.setView(pos, 17, { animate: true });
+
+    const key = `${selectedResto.nom}-${selectedResto.sheetRowNumber}`;
+    const marker = markersRef.current.get(key);
+    if (marker) {
+      marker.openPopup();
+    }
+  }, [selectedResto]);
+
+  // z-0 crée un contexte d'empilement isolé pour les panes Leaflet (z-index 200–700),
+  // permettant à nos overlays React (z-20+) d'apparaître par-dessus la carte.
   return (
     <div
-      ref={mapRef}
-      className="w-full h-full"
+      ref={containerRef}
+      className="w-full h-full z-0"
       role="application"
       aria-label="Carte des restaurants"
     />
-  );
-}
-
-export function Map({ restos, onMarkerClick, selectedResto }: MapProps) {
-  if (!apiKey) {
-    return (
-      <div className="w-full h-full bg-red-50 flex items-center justify-center">
-        <p className="text-red-700 font-medium">
-          Clé API Google Maps non configurée
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full h-full">
-      <Wrapper apiKey={apiKey} libraries={["places"]} version="weekly">
-        <MapInner
-          restos={restos}
-          onMarkerClick={onMarkerClick}
-          selectedResto={selectedResto}
-        />
-      </Wrapper>
-    </div>
   );
 }
